@@ -5,7 +5,7 @@ import {
   COLLECTION_ID_MESSAGES,
 } from "../../appwriteConfig";
 
-import { ID } from "appwrite";
+import { ID, Query } from "appwrite";
 
 const Room = () => {
   const [messages, setMessages] = useState([]);
@@ -20,8 +20,20 @@ const Room = () => {
       DATABASE_ID,
       COLLECTION_ID_MESSAGES
     );
-    console.log("RESPONSE:", response);
-    setMessages(response.documents);
+
+    // Ordenar los documentos de más reciente a más viejo
+    const sortedMessages = response.documents.sort((a, b) => {
+      const dateA = new Date(a.$createdAt);
+      const dateB = new Date(b.$createdAt);
+      return dateB - dateA; // Orden descendente (más reciente a más viejo)
+    });
+
+    // Limitar los mensajes a los últimos 5
+    const lastFiveMessages = sortedMessages.slice(0, 5);
+
+    console.log(lastFiveMessages); // Solo para verificar en la consola
+
+    setMessages(lastFiveMessages);
   };
 
   const handleSubmit = async (e) => {
@@ -35,8 +47,11 @@ const Room = () => {
       ID.unique(),
       payload
     );
+
     console.log("Created!", response);
-    setMessages(prevState=>[response, ...messages])
+
+    setMessages((prevState) => [response, ...messages.slice(0, 4)]);
+
     setMessageBody("");
   };
 
